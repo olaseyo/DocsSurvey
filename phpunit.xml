@@ -1,0 +1,15 @@
+<phpunit bootstrap="vendor/autoload.php"
+  backupStaticAttributes="false"
+  colors="true"
+  convertErrorsToExceptions="true"
+  convertNoticesToExceptions="true"
+  convertWarningsToExceptions="true"
+  processIsolation="false"
+  stopOnFailure="false"
+  syntaxCheck="false">
+    <testsuites>
+        <testsuite name="SlimSkeleton">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

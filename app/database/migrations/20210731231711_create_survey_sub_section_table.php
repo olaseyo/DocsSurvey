@@ -1,0 +1,52 @@
+<?php
+
+use \Migrations\Migration;
+use Illuminate\Support\Str;
+class CreateSurveySubSectionTable extends Migration
+{
+
+  public function up()
+  {
+    $this->schema->create('survey_sub_sections', function (Illuminate\Database\Schema\Blueprint $table) {
+      $table->uuid('id')->primary();
+      $table->uuid('templateId')->nullable(false);
+      $table->foreign('templateId')->references('id')->on('survey_templates')->onDelete('cascade');
+      $table->uuid('surveySectionId')->nullable(false);
+      $table->foreign('surveySectionId')->references('id')->on('survey_sections')->onDelete('cascade');;
+      $table->integer('order');
+      $table->string('title');
+      $table->string('icon')->nullable();
+      $table->dateTime('createdAt')->useCurrent();
+      $table->dateTime('updatedAt')->useCurrent();
+    });
+
+    $faker = Faker\Factory::create();
+    $data = [];
+    $last_sub_section=$this->fetchRow('SELECT count(*) FROM survey_sub_sections');
+    $order=$last_sub_section[0];
+    for ($i = 0; $i <50; $i++) {
+      $template=$this->fetchRow('SELECT survey_sections.* FROM survey_templates
+        JOIN survey_sections on survey_sections.templateId=survey_templates.id
+        JOIN brandings on brandings.templateId=survey_templates.id order by RAND()');
+
+        $data[]=[
+          'id'                =>Str::uuid(),
+          'templateId'        =>$template['templateId'],
+          'surveySectionId'   =>$template['id'],
+          'title'             =>$faker->words(3,true),
+          'order'             =>$order,
+          'icon'              =>'https://source.unsplash.com/random',
+        ];
+        $order++;
+      }
+
+      $this->table('survey_sub_sections')->insert($data)->saveData();
+    }
+    public function down()
+    {
+
+      $this->execute('SET FOREIGN_KEY_CHECKS = 0');
+      $this->schema->drop('survey_sub_sections');
+    }
+
+  }
