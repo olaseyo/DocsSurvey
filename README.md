@@ -4,8 +4,6 @@ This is a light microservice built on top SLIM MVC framework.
 
 ## Installation
 
-[PHP](https://php.net) 5.5+ and [Composer](https://getcomposer.org) are required.
-
 
 ``` bash
 Clone Repo
