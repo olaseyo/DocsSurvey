@@ -59,7 +59,7 @@ class SurveyResponseController extends Controller{
     }
     if(!$this->surveyQuestion->find($args['questionId'])){
       $result["error"] ="bad_request";
-      $result["description"] = "survey not found";
+      $result["description"] = "question not found";
       return $response->withJson($result, 404);
     }
     if($this->surveyTemplate->getStatus($args['surveyId'])==SurveyStatus::$SUBMITTED){
