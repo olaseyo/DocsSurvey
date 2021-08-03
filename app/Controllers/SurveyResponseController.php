@@ -19,28 +19,48 @@ class SurveyResponseController extends Controller{
     $this->surveyQuestion=$surveyQuestion;
   }
 
+  public function checkRecord(array $rules,array $input):array{
+    $response=[];
+    if(isset($input['surveyId']) && in_array("survey",$rules)){
+    if(!$this->surveyTemplate->find($input['surveyId'])){
+      $response=array(
+        "code"=>400,
+        "description"=>"survey not found"
+      );
+      return $response;
+    }
+    if($this->surveyTemplate->getStatus($input['surveyId'])==SurveyStatus::$SUBMITTED &&  in_array("status",$rules)){
+      $response=array(
+        "code"=>400,
+        "description"=>"survey already completed"
+      );
+      return $response;
+    }
+  }else if(isset($input['id']) &&  in_array("question",$rules)){
+    if(!$this->surveyQuestion->find($input['id'])){
+      $response=array(
+        "code"=>404,
+        "description"=>"question not found"
+      );
+      return $response;
+    }
+  }
+  return [];
+}
   public function saveQuestionResponse($request, $response,$args):Response{
     $input=(array)$request->getParsedBody();
     $result=[];
-    if(!isset($input['id'])|| !isset($input['value'])) {
-      $result["error"] ="bad_request";
-      $result["description"] = "invalid request payload";
+    if(count($this->validate($input))) {
+      $result=$this->response('invalid request payload',400);
       return $response->withJson($result, 400);
     }
-    if(!$this->surveyTemplate->find($args['surveyId'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey not found";
-      return $response->withJson($result, 404);
-    }
-    if(!$this->surveyQuestion->find($input['id'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "question not found";
-      return $response->withJson($result, 404);
-    }
-    if($this->surveyTemplate->getStatus($args['surveyId'])==SurveyStatus::$SUBMITTED){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey already completed";
-      return $response->withJson($result, 400);
+    $validate_payload=[];
+    $validate_payload['surveyId']=$args['surveyId'];
+    $validate_payload['id']=$args['questionId'];
+    $checks=$this->checkRecord(['survey','question','status'],$validate_payload);
+    if(count($checks)>0){
+      $validator_response=$this->response($checks['description'],$checks['code']);
+      return $response->withJson($validator_response,$checks['code']);
     }
     $input['templateId']=$args['surveyId'];
     $input['surveyQuestionId']=$input['id'];
@@ -50,39 +70,28 @@ class SurveyResponseController extends Controller{
   }
 
   public function getQuestionResponse($request, $response,$args):Response{
-    $input=(array)$request->getParsedBody();
     $result=[];
-    if(!$this->surveyTemplate->find($args['surveyId'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey not found";
-      return $response->withJson($result, 404);
-    }
-    if(!$this->surveyQuestion->find($args['questionId'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "question not found";
-      return $response->withJson($result, 404);
-    }
-    if($this->surveyTemplate->getStatus($args['surveyId'])==SurveyStatus::$SUBMITTED){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey already completed";
-      return $response->withJson($result, 400);
+    $validate_payload=[];
+    $validate_payload['surveyId']=$args['surveyId'];
+    $validate_payload['id']=$args['questionId'];
+    $checks=$this->checkRecord(['survey','question','status'],$validate_payload);
+    if(count($checks)>0){
+      $validator_response=$this->response($checks['description'],$checks['code']);
+      return $response->withJson($validator_response,$checks['code']);
     }
     $data=$this->surveyResponse->getModel()->where('surveyQuestionId',$args['questionId'])->first(['id','value']);
     return $response->withJson($data,200);
   }
   public function getSurveyResponses($request, $response,$args):Response{
-    $input=(array)$request->getParsedBody();
     $result=[];
-    if(!$this->surveyTemplate->find($args['surveyId'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey not found";
-      return $response->withJson($result, 404);
+    $validate_payload=[];
+    $validate_payload['surveyId']=$args['surveyId'];
+    $checks=$this->checkRecord(['survey','status'],$validate_payload);
+    if(count($checks)>0){
+      $validator_response=$this->response($checks['description'],$checks['code']);
+      return $response->withJson($validator_response,$checks['code']);
     }
-    if($this->surveyTemplate->getStatus($args['surveyId'])==SurveyStatus::$SUBMITTED){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey already completed";
-      return $response->withJson($result, 400);
-    }
+
     $data=$this->surveyResponse->getModel()->where('templateId',$args['surveyId'])->get(['id','value']);
     return $response->withJson($data,200);
   }
@@ -108,22 +117,18 @@ class SurveyResponseController extends Controller{
   public function saveSurveyResponses($request, $response,$args):Response{
     $input=(array)$request->getParsedBody();
     $result=[];
-
     if (count($input)==count($input,COUNT_RECURSIVE))
     {
       $result["error"] ="bad_request";
       $result["description"] = "bad request format";
       return $response->withJson($result, 400);
     }
-    if(!$this->surveyTemplate->find($args['surveyId'])){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey not found";
-      return $response->withJson($result, 404);
-    }
-    if($this->surveyTemplate->getStatus($args['surveyId'])==SurveyStatus::$SUBMITTED){
-      $result["error"] ="bad_request";
-      $result["description"] = "survey already completed";
-      return $response->withJson($result, 400);
+    $validate_payload=[];
+    $validate_payload['surveyId']=$args['surveyId'];
+    $checks=$this->checkRecord(['survey','status'],$validate_payload);
+    if(count($checks)>0){
+      $validator_response=$this->response($checks['description'],$checks['code']);
+      return $response->withJson($validator_response,$checks['code']);
     }
     $prepared_payload=$this->prepareBulkResponse($input,$args['surveyId']);
     if($prepared_payload['validation_error_count']>0){

@@ -35,7 +35,8 @@ class SurveyTemplateRepository implements SurveyTemplateInterface{
 	}
 
 	public function getStatus(string $id):string{
-		return $this->surveyTemplate->find($id)->surveyStatus;
+		$status=$this->surveyTemplate->find($id);
+		return ($status)?$status->surveyStatus:'';
 	}
 
 }
