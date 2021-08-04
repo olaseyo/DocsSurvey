@@ -50,13 +50,13 @@ class SurveyResponseController extends Controller{
   public function saveQuestionResponse($request, $response,$args):Response{
     $input=(array)$request->getParsedBody();
     $result=[];
-    if(count($this->validate($input))) {
+    if(count($this->validate($input,['id','value']))>0) {
       $result=$this->response('invalid request payload',400);
       return $response->withJson($result, 400);
     }
     $validate_payload=[];
     $validate_payload['surveyId']=$args['surveyId'];
-    $validate_payload['id']=$args['questionId'];
+    $validate_payload['id']=$input['id'];
     $checks=$this->checkRecord(['survey','question','status'],$validate_payload);
     if(count($checks)>0){
       $validator_response=$this->response($checks['description'],$checks['code']);

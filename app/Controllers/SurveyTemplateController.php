@@ -100,7 +100,7 @@ class SurveyTemplateController extends Controller{
   public function completeSurvey($request, $response,$args):Response{
     $input=(array)$request->getParsedBody();
     $result=[];
-    if(count($this->validate($input))) {
+    if(count($this->validate($input,['surveyStatus']))>0) {
       $result=$this->response('invalid request payload',400);
       return $response->withJson($result, 400);
     }

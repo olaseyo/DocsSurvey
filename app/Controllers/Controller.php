@@ -18,12 +18,12 @@ class Controller {
        
     }
 
-    public function validate($payload){
+    public function validate($payload,$rules){
         $errors = [];
-            foreach ($payload as $key=>$value) {
-                if (empty($value)) {
-                    $errors[] = $key;
-                } 
+        for($i=0;$i<count($rules);$i++) {
+                if(empty($payload[$rules[$i]])){
+                    $errors[] =$rules[$i];
+                }
             }
         return $errors;
         }
